@@ -11,6 +11,10 @@ var mongoose = require('mongoose'),
  * Category Schema
  */
 var CategorySchema = new Schema({
+  _id: {
+    type: Schema.ObjectId,
+    auto: true
+  },
   created: {
     type: Date,
     default: Date.now
