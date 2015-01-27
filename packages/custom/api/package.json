@@ -1,0 +1,15 @@
+{
+  "name": "api",
+  "version": "0.0.1",
+  "description": "Some description of api",
+  "author": {
+    "name": "mean scaffold"
+  },
+  "mean": "0.4.2",
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.4.x"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}
