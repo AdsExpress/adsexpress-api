@@ -24,12 +24,11 @@ var CategorySchema = new Schema({
     required: true,
     trim: true
   },
-  left: {
-    type: Number,
-  },
-  right: {
-    type: Number,
-  },
+  slug: {
+    type: String,
+    required: true,
+    trim: true
+  }
 });
 
 /**
@@ -37,10 +36,10 @@ var CategorySchema = new Schema({
  */
 CategorySchema.path('name').validate(function(name) {
   return !!name;
-}, 'Name cannot be blank');
+}, 'Category name cannot be blank');
 
+CategorySchema.path('slug').validate(function(slug) {
+  return !!slug;
+}, 'Slug cannot be blank');
 
-/**
- * Statics
- */
 mongoose.model('Category', CategorySchema);
