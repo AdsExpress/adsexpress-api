@@ -23,7 +23,7 @@ Api.register(function(app, auth, database) {
     roles: ['authenticated'],
     menu: 'main'
   });
-  
+
   Api.aggregateAsset('css', 'api.css');
 
   /**

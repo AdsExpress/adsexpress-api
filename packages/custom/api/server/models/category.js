@@ -4,6 +4,7 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
+  NestedSetPlugin = require('mongoose-nested-set'),
   Schema = mongoose.Schema;
 
 
@@ -30,6 +31,9 @@ var CategorySchema = new Schema({
     trim: true
   }
 });
+
+// Set Category Schema as Nested-set
+CategorySchema.plugin(NestedSetPlugin);
 
 /**
  * Validations
