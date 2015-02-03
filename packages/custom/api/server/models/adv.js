@@ -46,7 +46,8 @@ var AdvSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  meta: [{ mkey: String, mValue: Schema.Types.Mixed }]
 });
 
 AdvSchema.plugin(autoIncrement.plugin, { model: 'Adv', startAt: 100, incrementBy: 1});
