@@ -1,9 +1,9 @@
 {
   "name": "api",
   "version": "0.0.1",
-  "description": "Some description of api",
+  "description": "AdsExpress API",
   "author": {
-    "name": "mean scaffold"
+    "name": "Saleh Saiid"
   },
   "mean": "0.4.2",
   "engines": {
