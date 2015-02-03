@@ -28,7 +28,8 @@ var CategorySchema = new Schema({
   slug: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    index: true
   }
 });
 
