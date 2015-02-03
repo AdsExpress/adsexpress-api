@@ -53,6 +53,7 @@
     "meanio": "^0.6.16",
     "method-override": "1.0.2",
     "mongoose": "3.8.21",
+    "mongoose-auto-increment": "^3.2.0",
     "mongoose-nested-set": "0.0.6",
     "morgan": "1.5.0",
     "ms": "0.6.2",
