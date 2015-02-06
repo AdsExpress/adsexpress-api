@@ -25,11 +25,17 @@ var CategorySchema = new Schema({
     required: true,
     trim: true,
     index: true
+  },
+  status: {
+    type: Boolean,
+    required: true,
+    index: true,
+    default: 0
   }
 });
 
 // Set Category Schema as Nested-set
-CategorySchema.plugin(NestedSetPlugin);
+CategorySchema.plugin(NestedSetPlugin, {status: true});
 
 /**
  * Validations
@@ -45,14 +51,24 @@ CategorySchema.path('slug').validate(function(slug) {
 /**
  * Statics
  */
-CategorySchema.statics.getList = function getList(_slug, listChild, cb){
-  this.findOne({ slug : _slug }, function(err, _category){
+CategorySchema.statics.getDescendantsBySlug = function getCategoryBySlug(_slug, listChild, cb){
+  this.findOne({ slug : _slug}, function(err, _category){
     if(_category){
       if(listChild){
-        _category.descendants(cb);
+        _category.selfAndChildren(cb);
       }else{
         cb(err, _category);
       }
+    }else{
+      cb(err, {});
+    }
+  });
+};
+
+CategorySchema.statics.getAllRoot = function getList(cb){
+  this.find({parentId : {$exists: false}}, function(err, data){
+    if(data){
+      cb(err, data);
     }else{
       cb(err, {});
     }
