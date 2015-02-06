@@ -7,15 +7,10 @@ var mongoose = require('mongoose'),
   NestedSetPlugin = require('mongoose-nested-set'),
   Schema = mongoose.Schema;
 
-
 /**
  * Category Schema
  */
 var CategorySchema = new Schema({
-  _id: {
-    type: Schema.ObjectId,
-    auto: true
-  },
   created: {
     type: Date,
     default: Date.now
@@ -46,5 +41,22 @@ CategorySchema.path('name').validate(function(name) {
 CategorySchema.path('slug').validate(function(slug) {
   return !!slug;
 }, 'Slug cannot be blank');
+
+/**
+ * Statics
+ */
+CategorySchema.statics.getList = function getList(_slug, listChild, cb){
+  this.findOne({ slug : _slug }, function(err, _category){
+    if(_category){
+      if(listChild){
+        _category.descendants(cb);
+      }else{
+        cb(err, _category);
+      }
+    }else{
+      cb(err, {});
+    }
+  });
+};
 
 mongoose.model('Category', CategorySchema);
