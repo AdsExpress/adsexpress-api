@@ -10,7 +10,11 @@ module.exports = function(Api, app, auth, database) {
     .get(categories.all)
     .post(categories.create);
 
+  app.route('/api/categories/:id')
+    .put(categories.update);
+
   app.route('/api/categories/:slug').get(categories.category);
 
   app.param('slug', categories.category);
+  app.param('id', categories.update);
 };
