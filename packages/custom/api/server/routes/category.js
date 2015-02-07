@@ -6,6 +6,9 @@ var categories = require('../controllers/categories');
 // The Package is past automatically as first parameter
 module.exports = function(Api, app, auth, database) {
 
+  /**
+   * Category
+   */
   app.route('/api/categories')
     .get(categories.all)
     .post(categories.create);
@@ -17,4 +20,8 @@ module.exports = function(Api, app, auth, database) {
 
   app.param('slug', categories.category);
   app.param('id', categories.update);
+
+  /**
+   * Adv
+   */
 };
