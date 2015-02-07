@@ -75,7 +75,8 @@ exports.update = function(req, res, next, id){
     if(category){
       var data = {
         name: req.body.name,
-        slug: req.body.slug
+        slug: req.body.slug,
+        status: req.body.status || true
       };
 
       category.update({$set: data}, function(err){
