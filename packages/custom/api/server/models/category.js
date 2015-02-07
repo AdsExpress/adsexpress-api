@@ -10,7 +10,7 @@ var mongoose = require('mongoose'),
 
 var validateUniqueSlug = function (value, callback){
   var Category = mongoose.model('Category');
-  Category.findOne({
+  Category.find({
     $and : [{
       slug: value
     }, {
