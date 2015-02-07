@@ -66,6 +66,18 @@ CategorySchema.path('slug').validate(function(slug) {
 }, 'Slug cannot be blank');
 
 /**
+ * Hooks
+ */
+CategorySchema.pre('save', function(next){
+  if(!this.parentId){
+    this.lft = 1;
+    this.rgt = 2;
+  }
+
+  next();
+});
+
+/**
  * Statics
  */
 CategorySchema.statics = {
