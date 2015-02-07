@@ -7,6 +7,21 @@ var mongoose = require('mongoose'),
   NestedSetPlugin = require('mongoose-nested-set'),
   Schema = mongoose.Schema;
 
+
+var validateUniqueSlug = function (value, callback){
+  var Category = mongoose.model('Category');
+  Category.findOne({
+    $and : [{
+      slug: value
+    }, {
+      _id: {
+        $ne: this._id
+      }
+    }]
+  }, function(err, category){
+    callback(err || category.length === 0);
+  });
+};
 /**
  * Category Schema
  */
@@ -24,7 +39,9 @@ var CategorySchema = new Schema({
     type: String,
     required: true,
     trim: true,
-    index: true
+    index: true,
+    unique: true,
+    validate: [validateUniqueSlug, 'Slug is already in-use']
   },
   status: {
     type: Boolean,
@@ -51,28 +68,31 @@ CategorySchema.path('slug').validate(function(slug) {
 /**
  * Statics
  */
-CategorySchema.statics.getDescendantsBySlug = function getCategoryBySlug(_slug, listChild, cb){
-  this.findOne({ slug : _slug}, function(err, _category){
-    if(_category){
-      if(listChild){
-        _category.selfAndChildren(cb);
-      }else{
-        cb(err, _category);
-      }
-    }else{
-      cb(err, {});
-    }
-  });
-};
+CategorySchema.statics = {
 
-CategorySchema.statics.getAllRoot = function getList(cb){
-  this.find({parentId : {$exists: false}}, function(err, data){
-    if(data){
-      cb(err, data);
-    }else{
-      cb(err, {});
-    }
-  });
+  getDescendantsBySlug : function (_slug, listChild, cb){
+    this.findOne({ slug : _slug}, function(err, _category){
+      if(_category){
+        if(listChild){
+          _category.selfAndChildren(cb);
+        }else{
+          cb(err, _category);
+        }
+      }else{
+        cb(err, {});
+      }
+    });
+  },
+
+  getAllRoot : function (cb){
+    this.find({parentId : {$exists: false}}, function(err, data){
+      if(data){
+        cb(err, data);
+      }else{
+        cb(err, {});
+      }
+    });
+  }
 };
 
 mongoose.model('Category', CategorySchema);
