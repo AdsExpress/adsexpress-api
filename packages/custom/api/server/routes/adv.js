@@ -12,8 +12,10 @@ module.exports = function(Api, app, auth, database) {
   app.route('/api/advs')
     .get(advs.checkCategory, advs.list)
     .post(advs.create);
-    
-  app.route('/api/advs/:id').get(advs.info);
 
-  app.param('id', advs.info);
+  app.route('/api/advs/:id')
+    .get(advs.info)
+    .put(advs.update);
+
+  app.param('id', advs.update, advs.info);
 };

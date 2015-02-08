@@ -79,3 +79,42 @@ exports.create = function(req, res, next){
     res.json(adv);
   });
 };
+
+exports.update = function(req, res, next, id){
+
+  Adv.findOne({_id: id}, function(err, adv){
+    if(adv){
+      var data = {
+        title: req.body.title,
+        content: req.body.content,
+        category: req.body.category
+      };
+
+      adv.update({$set: data}, function(err){
+        if (err) {
+          var modelErrors = [];
+
+          if (err.errors) {
+
+            for (var x in err.errors) {
+              modelErrors.push({
+                param: x,
+                msg: err.errors[x].message,
+                value: err.errors[x].value
+              });
+            }
+
+            return res.status(400).json(modelErrors);
+          }
+        }
+      });
+
+    }else{
+      return res.status(400).json({
+        errors: 'Faild to load this adv'
+      });
+    }
+
+    return res.json(adv);
+  });
+};
