@@ -130,6 +130,7 @@ AdvSchema.statics = {
       var promise = self.populate(data, opts);
 
       promise.then(function(data){
+        if(!data) data = {};
         return callback(null, data);
       }).end();
     });
