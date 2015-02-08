@@ -5,7 +5,8 @@
  */
 var mongoose = require('mongoose'),
   autoIncrement = require('mongoose-auto-increment'),
-  Schema = mongoose.Schema;
+  Schema = mongoose.Schema,
+  _ = require('lodash');
 
 autoIncrement.initialize(mongoose.connection);
 
@@ -76,17 +77,29 @@ AdvSchema.statics = {
 
   search : function(queryString, callback){
     var self = this;
+    var filter = {};
 
-    var filter = {
-      $and : [{
-        status: true,
-        $or: [
-          { title: new RegExp(queryString.keyword, 'i') },
-          { content: new RegExp(queryString.keyword, 'i') },
-          { tags: { $elemMatch: { $in : [queryString.keyword] } } }
-        ]
-      }]
-    };
+    if(queryString.keyword && queryString.keyword.length >= 3){
+      var tags = queryString.keyword.split(' ');
+
+      // removes tags that length lower then 3 chars
+      _.remove(tags, function(tag){ return tag.length < 3; });
+
+      filter = {
+        $and : [{
+          status: true,
+          $or: [
+            { title: new RegExp(queryString.keyword, 'i') },
+            { content: new RegExp(queryString.keyword, 'i') },
+            { tags: { $elemMatch: { $in : [queryString.keyword] } } }
+          ]
+        }]
+      };
+    }else{
+      filter = {
+        status: true
+      };
+    }
 
     var limit = queryString.limit;
     if(!isNumeric(limit) || limit <= 0){
