@@ -133,6 +133,33 @@ AdvSchema.statics = {
         return callback(null, data);
       }).end();
     });
+  },
+
+  getInfo: function(id, callback){
+    var self = this;
+    var filter = {
+      status: true,
+      _id: id
+    };
+
+    self.findOne(filter, function(err, data){
+      if(err){
+        return callback(err);
+      }
+
+      var opts = [
+        { path: 'category', select: 'name slug', model: 'Category'},
+        { path: 'user', select: 'name username', model: 'User'}
+      ];
+
+      var promise = self.populate(data, opts);
+
+      promise.then(function(data){
+        if(!data) data = {};
+        return callback(null, data);
+      }).end();
+
+    });
   }
 };
 

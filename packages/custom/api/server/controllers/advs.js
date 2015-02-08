@@ -41,3 +41,16 @@ exports.list = function(req, res){
     res.json(data);
   });
 };
+
+exports.info = function (req, res, next, id){
+
+  Adv.getInfo(id, function(err, data){
+    if(err){
+      return res.status(500).json({
+        error: err
+      });
+    }
+
+    res.json(data);
+  });
+};
