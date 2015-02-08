@@ -64,4 +64,34 @@ AdvSchema.path('title').validate(function(title) {
   return !!title;
 }, 'Adv title cannot be blank');
 
+/**
+ * Statics
+ **/
+AdvSchema.statics = {
+
+  search : function(filter, limit, skip, callback){
+    var self = this;
+    self.aggregate([
+      { $match: filter },
+      { $limit: limit},
+      { $sort: {created: -1}}
+    ],function(err, data){
+      if (err){
+        return callback(err, {});
+      }
+
+      var opts = [
+        { path: 'category', select: 'name slug', model: 'Category'},
+        { path: 'user', select: 'name username', model: 'User'}
+      ];
+
+      var promise = self.populate(data, opts);
+
+      promise.then(function(data){
+        return callback(null, data);
+      }).end();
+    });
+  }
+};
+
 mongoose.model('Adv', AdvSchema);
