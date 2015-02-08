@@ -15,6 +15,10 @@ var isNumeric = function (obj) {
     return !isNaN(parseFloat(obj)) && isFinite(obj) && Object.prototype.toString.call(obj).toLowerCase() !== '[object array]';
 };
 
+var validateTextLength = function (value, callback){
+  callback(String(value).length > 15);
+};
+
 /**
  * Adv Schema
  */
@@ -29,13 +33,13 @@ var AdvSchema = new Schema({
   },
   title: {
     type: String,
-    required: true,
-    trim: true
+    trim: true,
+    validate: [validateTextLength, 'The Title must be 15 char at least']
   },
   content: {
     type: String,
-    required: true,
-    trim: true
+    trim: true,
+    validate: [validateTextLength, 'The Content must be 15 char at least']
   },
   comment_status: {
     type: Boolean,

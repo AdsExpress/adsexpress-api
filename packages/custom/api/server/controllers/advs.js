@@ -47,10 +47,35 @@ exports.info = function (req, res, next, id){
   Adv.getInfo(id, function(err, data){
     if(err){
       return res.status(500).json({
-        error: err
+        error: 'Faild to load this adv'
       });
     }
 
     res.json(data);
+  });
+};
+
+exports.create = function(req, res, next){
+  var adv = new Adv(req.body);
+
+  adv.save(function(err){
+    if (err) {
+      var modelErrors = [];
+
+      if (err.errors) {
+
+        for (var x in err.errors) {
+          modelErrors.push({
+            param: x,
+            msg: err.errors[x].message,
+            value: err.errors[x].value
+          });
+        }
+
+        return res.status(400).json(modelErrors);
+      }
+    }
+
+    res.json(adv);
   });
 };
