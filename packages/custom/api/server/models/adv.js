@@ -9,6 +9,11 @@ var mongoose = require('mongoose'),
 
 autoIncrement.initialize(mongoose.connection);
 
+var isNumeric = function (obj) {
+    obj = typeof(obj) === 'string' ? obj.replace(',', '.') : obj;
+    return !isNaN(parseFloat(obj)) && isFinite(obj) && Object.prototype.toString.call(obj).toLowerCase() !== '[object array]';
+};
+
 /**
  * Adv Schema
  */
@@ -69,11 +74,34 @@ AdvSchema.path('title').validate(function(title) {
  **/
 AdvSchema.statics = {
 
-  search : function(filter, limit, skip, callback){
+  search : function(queryString, callback){
     var self = this;
+
+    var filter = {
+      $and : [{
+        status: true,
+        $or: [
+          { title: new RegExp(queryString.keyword, 'i') },
+          { content: new RegExp(queryString.keyword, 'i') },
+          { tags: { $elemMatch: { $in : [queryString.keyword] } } }
+        ]
+      }]
+    };
+
+    var limit = queryString.limit;
+    if(!isNumeric(limit) || limit <= 0){
+      limit = 10;
+    }
+
+    var skip = queryString.offset;
+    if(!isNumeric(skip) || skip < 0){
+      skip = 0;
+    }
+
     self.aggregate([
       { $match: filter },
       { $limit: limit},
+      { $skip: skip},
       { $sort: {created: -1}}
     ],function(err, data){
       if (err){
