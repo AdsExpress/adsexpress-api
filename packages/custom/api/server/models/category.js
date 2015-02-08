@@ -104,6 +104,9 @@ CategorySchema.statics = {
         cb(err, {});
       }
     });
+  },
+  loadBySlug : function(slug, cb){
+    this.model('Category').findOne({slug: slug}).exec(cb);
   }
 };
 

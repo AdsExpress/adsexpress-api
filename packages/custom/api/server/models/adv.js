@@ -77,7 +77,15 @@ AdvSchema.statics = {
 
   search : function(queryString, callback){
     var self = this;
-    var filter = {};
+    var filter = {
+      status: true
+    };
+
+    if(queryString.categoryId){
+      filter.category = queryString.categoryId;
+    } else if(queryString.categoryId === null){
+      return callback(null, {}); // retrun null if not found category
+    }
 
     if(queryString.keyword && queryString.keyword.length >= 3){
       var tags = queryString.keyword.split(' ');
@@ -85,20 +93,13 @@ AdvSchema.statics = {
       // removes tags that length lower then 3 chars
       _.remove(tags, function(tag){ return tag.length < 3; });
 
-      filter = {
-        $and : [{
-          status: true,
-          $or: [
-            { title: new RegExp(queryString.keyword, 'i') },
-            { content: new RegExp(queryString.keyword, 'i') },
-            { tags: { $elemMatch: { $in : [queryString.keyword] } } }
-          ]
-        }]
-      };
-    }else{
-      filter = {
-        status: true
-      };
+      var or = [
+        { title: new RegExp(queryString.keyword, 'i') },
+        { content: new RegExp(queryString.keyword, 'i') },
+        { tags: { $elemMatch: { $in : [queryString.keyword] } } }
+      ];
+
+      filter.$or = or;
     }
 
     var limit = queryString.limit;
