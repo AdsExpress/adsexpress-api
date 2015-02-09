@@ -6,8 +6,8 @@
 var mongoose = require('mongoose'),
   Category = mongoose.model('Category');
 
-exports.category = function (req, res, next, slug){
-  Category.getDescendantsBySlug(slug, true, function (err, data){
+exports.category = function (req, res, next){
+  Category.getDescendantsBySlug(req.params.slug, true, function (err, data){
     if (err){
       return res.status(500).json({
         error: 'Faild to load categories'
@@ -61,7 +61,7 @@ exports.create = function(req, res, next){
   });
 };
 
-exports.update = function(req, res, next, id){
+exports.update = function(req, res, next){
 
   req.assert('name', 'You must enter a name').notEmpty();
   req.assert('slug', 'You must enter a slug').notEmpty();
@@ -71,7 +71,7 @@ exports.update = function(req, res, next, id){
     return res.status(400).json(errors);
   }
 
-  Category.findOne({_id: id}, function(err, category){
+  Category.findOne({_id: req.params.id}, function(err, category){
     if(category){
       var data = {
         name: req.body.name,

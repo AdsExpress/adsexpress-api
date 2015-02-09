@@ -18,8 +18,8 @@ module.exports = function(Api, app, auth, database) {
 
   app.route('/api/categories/:slug').get(categories.category);
 
-  app.param('slug', categories.category);
-  app.param('id', categories.update);
+  //app.param('slug', categories.category);
+  //app.param('id', categories.update);
 
   /**
    * Adv
