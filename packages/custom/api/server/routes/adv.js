@@ -15,7 +15,5 @@ module.exports = function(Api, app, auth, database) {
 
   app.route('/api/advs/:id')
     .get(advs.info)
-    .put(advs.update);
-
-  app.param('id', advs.update, advs.info);
+    .put(advs.update); 
 };

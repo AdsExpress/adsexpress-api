@@ -42,9 +42,9 @@ exports.list = function(req, res){
   });
 };
 
-exports.info = function (req, res, next, id){
+exports.info = function (req, res, next){
 
-  Adv.getInfo(id, function(err, data){
+  Adv.getInfo(req.params.id, function(err, data){
     if(err){
       return res.status(500).json({
         error: 'Faild to load this adv'
@@ -80,9 +80,9 @@ exports.create = function(req, res, next){
   });
 };
 
-exports.update = function(req, res, next, id){
+exports.update = function(req, res, next){
 
-  Adv.findOne({_id: id}, function(err, adv){
+  Adv.findOne({_id: req.params.id}, function(err, adv){
     if(adv){
       var data = {
         title: req.body.title,
