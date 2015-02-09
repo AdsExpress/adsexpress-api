@@ -9,7 +9,7 @@ module.exports = {
     debug: true
   },
   app: {
-    name: 'MEAN - FullStack JS - Development'
+    name: 'Ads Express'
   },
   facebook: {
     clientID: 'DEFAULT_APP_ID',
