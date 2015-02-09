@@ -29,6 +29,20 @@ exports.checkCategory = function(req, res, next){
   }
 };
 
+exports.validateInputs = function (req, res, next){
+
+  req.assert('title', 'The Title must be 15 char at least').notEmpty();
+  req.assert('content', 'The Content must be 15 char at least').notEmpty();
+
+  var errors = req.validationErrors();
+
+  if(errors){
+    return res.status(400).json(errors);
+  }
+
+  next();
+};
+
 exports.list = function(req, res){
 
   Adv.search(req.query, function(err, data){

@@ -11,9 +11,9 @@ module.exports = function(Api, app, auth, database) {
    */
   app.route('/api/advs')
     .get(advs.checkCategory, advs.list)
-    .post(advs.create);
+    .post(advs.validateInputs, advs.create);
 
   app.route('/api/advs/:id')
     .get(advs.info)
-    .put(advs.update); 
+    .put(advs.validateInputs, advs.update); 
 };
