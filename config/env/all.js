@@ -43,5 +43,14 @@ module.exports = {
   },
 
   // The session cookie name
-  sessionName: 'connect.sid'
+  sessionName: 'connect.sid',
+
+  upload: {
+    directory: path.normalize(rootPath + '/files/public/'),
+    osSep: path.sep,
+    urlPath: '/files/public/',
+    maxSize: 2097152, // 2MB
+    allowedTypes: ['.JPG', '.PNG', '.GIF', '.JPEG'], // Should be UpperCase
+    fileFormat: '%(adv_id)s_p_%(user_id)s_%(timestamp)s'
+  }
 };

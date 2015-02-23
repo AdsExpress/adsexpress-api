@@ -4,8 +4,12 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
-  Adv = mongoose.model('Adv');
+  Adv = mongoose.model('Adv'),
+  fs = require('fs'),
+  upload = require('../helpers/upload'),
+  sprintf = require('sprintf');
 
+var config = require('meanio').loadConfig();
 
 exports.checkCategory = function(req, res, next){
   if(req.query.category){
@@ -131,4 +135,22 @@ exports.update = function(req, res, next){
 
     return res.json(adv);
   });
+};
+
+exports.uploadImage = function(req, res, next){
+  var path = config.upload.directory;
+
+  if(!fs.existsSync(path)){
+    res.status(500).jsonp({error: 'Internal error: please call administrator (not found upload directory).'});
+  } else {
+    // Set file name format parameters
+    var opt = { adv_id: req.params.id, user_id: 1, timestamp: new Date().getTime()};
+    var file_name = sprintf(config.upload.fileFormat, opt);
+
+    upload.rename(req.files.file, file_name, function(err, data){
+      if(err) return res.status(400).jsonp({error: err.message});
+      res.status(200).jsonp(data);
+    });
+  }
+
 };

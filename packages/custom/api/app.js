@@ -4,7 +4,8 @@
  * Defining the Package
  */
 var Module = require('meanio').Module;
-
+var config = require('meanio').loadConfig();
+var express = require('express');
 var Api = new Module('api');
 
 /*
@@ -16,6 +17,7 @@ Api.register(function(app, auth, database) {
   //We enable routing. By default the Package Object is passed to the routes
   Api.routes(app, auth, database);
 
+  app.use(config.upload.urlPath, express.static(config.upload.directory));
   /**
     //Uncomment to use. Requires meanio@0.3.7 or above
     // Save settings with callback
