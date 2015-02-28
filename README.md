@@ -1,3 +1,4 @@
+<<<<<<< .merge_file_a03756
 <<<<<<< HEAD
 =======
 [![Build Status](https://travis-ci.org/linnovate/mean.svg?branch=master)](https://travis-ci.org/linnovate/mean)
@@ -600,3 +601,5 @@ heroku config:set NODE_ENV=production
 ## License
 We belive that mean should be free and easy to integrate within your existing projects so we chose the [The MIT License](http://opensource.org/licenses/MIT)
 >>>>>>> origin/master
+=======
+>>>>>>> .merge_file_a05936
