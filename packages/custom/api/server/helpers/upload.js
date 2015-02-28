@@ -27,13 +27,10 @@ exports.rename = function(file, fileName, callback){
         if(err) return callback(err, null);
         else
         callback(null, {
-          success: true,
-          file: {
-            src: config.upload.urlPath + destFileName,
-            name: destFileName,
-            size: file.size,
-            created: Date.now(),
-          }
+          urlpath: config.upload.urlPath + destFileName,
+          name: file.name,
+          size: file.size,
+          created: Date.now(),
         });
       });
   });

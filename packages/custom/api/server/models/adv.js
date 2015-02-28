@@ -19,6 +19,16 @@ var validateTextLength = function (value, callback){
   callback(String(value).length > 15);
 };
 
+var ImageSchema = new Schema({
+  urlpath : String,
+  name: String,
+  size: Number,
+  created: Date,
+  isFront: {
+    type: Boolean,
+    default: false
+  }
+});
 /**
  * Adv Schema
  */
@@ -66,7 +76,8 @@ var AdvSchema = new Schema({
   location: {
     type: Schema.Types.ObjectId,
     required: true
-  }
+  },
+  images: [ImageSchema]
 });
 
 AdvSchema.plugin(autoIncrement.plugin, { model: 'Adv', startAt: 100, incrementBy: 1});
@@ -173,3 +184,4 @@ AdvSchema.statics = {
 };
 
 mongoose.model('Adv', AdvSchema);
+mongoose.model('Image', ImageSchema);

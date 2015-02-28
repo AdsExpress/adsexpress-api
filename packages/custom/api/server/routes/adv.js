@@ -19,6 +19,12 @@ module.exports = function(Api, app, auth, database) {
     .get(advs.info)
     .put(advs.validateInputs, advs.update);
 
-  app.route('/api/advs/:id/images')
-    .post(multipartMiddleware, advs.uploadImage);
+  app.route('/api/advs/:id/images/front') // Update Adv. front image
+    .put(multipartMiddleware, function(req, res, next){
+      req.frontImage = true;
+      next();
+    }, advs.uploadImage);
+
+    app.route('/api/advs/:id/images')
+      .put(multipartMiddleware,advs.uploadImage);
 };

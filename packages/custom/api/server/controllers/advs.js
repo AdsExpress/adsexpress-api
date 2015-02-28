@@ -7,7 +7,8 @@ var mongoose = require('mongoose'),
   Adv = mongoose.model('Adv'),
   fs = require('fs'),
   upload = require('../helpers/upload'),
-  sprintf = require('sprintf');
+  sprintf = require('sprintf'),
+  _ = require('lodash');
 
 var config = require('meanio').loadConfig();
 
@@ -141,15 +142,40 @@ exports.uploadImage = function(req, res, next){
   var path = config.upload.directory;
 
   if(!fs.existsSync(path)){
-    res.status(500).jsonp({error: 'Internal error: please call administrator (not found upload directory).'});
+    res.status(500).jsonp({errors: 'Internal error: please call administrator (not found upload directory).'});
   } else {
-    // Set file name format parameters
-    var opt = { adv_id: req.params.id, user_id: 1, timestamp: new Date().getTime()};
-    var file_name = sprintf(config.upload.fileFormat, opt);
+    Adv.findOne({ _id: req.params.id }, function(err, adv){
+      if (err) return res.status(400).json({ errors: 'Faild to load this adv' });
 
-    upload.rename(req.files.file, file_name, function(err, data){
-      if(err) return res.status(400).jsonp({error: err.message});
-      res.status(200).jsonp(data);
+      // adv. Not found
+      if(adv === null) return res.status(400).json({ errors: 'Adv. Not found' });
+
+      // Set file name format parameters
+      var opt = { adv_id: req.params.id, user_id: 1, timestamp: new Date().getTime()};
+      var file_name = sprintf(config.upload.fileFormat, opt);
+
+      upload.rename(req.files.file, file_name, function(err, imageInfo){
+        if(err) return res.status(400).jsonp({errors: err.message});
+        
+        imageInfo.isFront = req.frontImage || false;
+
+        // set isFront to false if uploaded image is front
+        if(adv.images !== null && imageInfo.isFront === true){
+          _.forEach(adv.images, function(n, index){
+            adv.images[index].isFront = false;
+          });
+        }
+
+        // Add image to images array
+        adv.images.push(imageInfo);
+
+        adv.save(function(err){
+          if(err) return res.status(400).jsonp({errors: err.message});
+
+          res.status(200).jsonp(imageInfo);
+        });
+
+      });
     });
   }
 
