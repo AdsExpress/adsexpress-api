@@ -5,11 +5,12 @@ var users = require('../controllers/users'),
     config = require('meanio').loadConfig();
 
 module.exports = function(MeanUser, app, auth, database, passport) {
+  var oauth2 = require('../middleware/oauth2');
 
   app.route('/logout')
     .get(users.signout);
   app.route('/users/me')
-    .get(users.me);
+    .get(passport.authenticate('bearer', { session: false }), users.me);
 
   // Setting up the users api
   app.route('/register')
@@ -31,15 +32,8 @@ module.exports = function(MeanUser, app, auth, database, passport) {
     });
 
   // Setting the local strategy route
-  app.route('/login')
-    .post(passport.authenticate('local', {
-      failureFlash: true
-    }), function(req, res) {
-      res.send({
-        user: req.user,
-        redirect: (req.user.roles.indexOf('admin') !== -1) ? req.get('referer') : false
-      });
-    });
+  app.route('/oauth')
+    .post(oauth2.token);
 
   // AngularJS route to get config of social buttons
   app.route('/get-config')

@@ -18,8 +18,6 @@ SystemPackage.register(function(app, auth, database) {
   //We enable routing. By default the Package Object is passed to the routes
   SystemPackage.routes(app, auth, database);
 
-  SystemPackage.aggregateAsset('css', 'common.css');
-
   // The middleware in config/express will run before this code
 
   // Set views path, template engine and default layout

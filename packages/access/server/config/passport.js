@@ -1,55 +1,66 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-  LocalStrategy = require('passport-local').Strategy,
+  BasicStrategy = require('passport-http').BasicStrategy,
+  ClientPasswordStrategy  = require('passport-oauth2-client-password').Strategy,
+  BearerStrategy = require('passport-http-bearer').Strategy,
   TwitterStrategy = require('passport-twitter').Strategy,
   FacebookStrategy = require('passport-facebook').Strategy,
   GitHubStrategy = require('passport-github').Strategy,
   GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
   LinkedinStrategy = require('passport-linkedin').Strategy,
   User = mongoose.model('User'),
+  Client = mongoose.model('Client'),
+  AccessToken = mongoose.model('AccessToken'),
   config = require('meanio').loadConfig();
 
 module.exports = function(passport) {
 
-  // Serialize the user id to push into the session
-  passport.serializeUser(function(user, done) {
-    done(null, user.id);
-  });
+  // Use Basic strategy
+  passport.use(new BasicStrategy(function(email, password, done) {
+      User.findOne({ email: email }, function(err, user) {
+        if (err) { return done(err); }
+        if (!user) { return done(null, false, { message: 'Unknown user' }); }
+        if (!user.authenticate(password)) { return done(null, false, { message: 'Invalid password' }); }
 
-  // Deserialize the user object based on a pre-serialized token
-  // which is the user id
-  passport.deserializeUser(function(id, done) {
-    User.findOne({
-      _id: id
-    }, '-salt -hashed_password', function(err, user) {
-      done(err, user);
-    });
-  });
-
-  // Use local strategy
-  passport.use(new LocalStrategy({
-      usernameField: 'email',
-      passwordField: 'password'
-    },
-    function(email, password, done) {
-      User.findOne({
-        email: email
-      }, function(err, user) {
-        if (err) {
-          return done(err);
-        }
-        if (!user) {
-          return done(null, false, {
-            message: 'Unknown user'
-          });
-        }
-        if (!user.authenticate(password)) {
-          return done(null, false, {
-            message: 'Invalid password'
-          });
-        }
         return done(null, user);
+      });
+    }
+  ));
+
+  passport.use(new ClientPasswordStrategy(
+    function(clientId, clientSecret, done) {
+      Client.findOne({ clientId: clientId }, function(err, client) {
+        if (err) { return done(err); }
+        if (!client) { return done(null, false); }
+        if (client.clientSecret !== clientSecret) { return done(null, false); }
+
+        return done(null, client);
+      });
+    }
+  ));
+
+  passport.use(new BearerStrategy(
+    function(accessToken, done){
+      AccessToken.findOne({ token: accessToken }, function(err, token){
+        if(err) return done(err);
+        if(!token) return done(null, false);
+
+        if( Math.round((Date.now() - token.created) / 1000 ) > config.oAuth2.tokenLife ){
+          AccessToken.remove({ token: accessToken }, function(err){
+            if(err) return done(err);
+          });
+
+          return done(null, false, { message: 'Token expired' });
+        }
+
+        User.findById(token.userId, function(err, user){
+          if(err) return done(err);
+          if(!user) return done(null, false, { message: 'Unknown user' });
+
+          var info = { scope: '*' };
+          done(null, user, info);
+        });
       });
     }
   ));
