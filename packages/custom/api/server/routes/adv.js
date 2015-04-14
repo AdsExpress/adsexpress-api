@@ -13,10 +13,7 @@ module.exports = function(Api, app, auth, database) {
    */
    // Accept Basic Latin characters [\u0041-\u005A] and [\u0061-\u007A] and arabic characters [\u0600-\u06FF]
   app.route('/api/advs/:slug([\u0041-\u005A\u0061-\u007A\u0600-\u06FF._-]+)')
-    .get(function(req, res, next){
-      console.log(req.params.slug);
-      next();
-    },advs.checkCategory, advs.list)
+    .get(advs.list)
     .post(advs.validateInputs, advs.create);
 
   app.route('/api/advs/:id([0-9]+)')

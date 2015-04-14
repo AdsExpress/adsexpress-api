@@ -8,31 +8,10 @@ var mongoose = require('mongoose'),
   fs = require('fs'),
   upload = require('../helpers/upload'),
   sprintf = require('sprintf'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  Q = require('q');
 
 var config = require('meanio').loadConfig();
-
-exports.checkCategory = function(req, res, next){
-  if(req.query.category){
-    var Category = mongoose.model('Category');
-    Category.loadBySlug(req.query.category, function(err, data){
-      if (err){
-        return res.status(500).json({
-          error: 'Faild to load advs'
-        });
-      }
-
-      if(data){
-        req.query.categoryId = data._id;
-      }else{
-        req.query.categoryId = null; // retrun null if not found category
-      }
-      next();
-    });
-  }else{
-    next();
-  }
-};
 
 exports.validateInputs = function (req, res, next){
 
@@ -49,15 +28,42 @@ exports.validateInputs = function (req, res, next){
 };
 
 exports.list = function(req, res){
+  var Category = mongoose.model('Category');
 
-  Adv.search(req.query, function(err, data){
-    if (err){
-      return res.status(500).json({
-        error: 'Faild to load advs'
+  function loadBySlug(){
+    var deferred = Q.defer();
+
+    Category.loadBySlug(req.params.slug, function(err, data){
+      if (err){
+        deferred.reject(new Error('Faild to load advs'));
+      }
+
+      if(data){
+        deferred.resolve(data._id);
+      }else{
+        deferred.resolve(null); // retrun null if not found category
+      }
+    });
+
+    return deferred.promise;
+  }
+
+  loadBySlug().then(function(category_id){
+    if(category_id !== null){
+      req.query.categoryId = category_id;
+
+      Adv.search(req.query, function(err, data){
+        if (err){
+          return res.status(500).json({error : 'Faild to load advs'});
+        }
+
+        return res.json(data);
       });
+    }else{
+      return res.status(500).json({error : 'Faild to load advs'});
     }
-
-    res.json(data);
+  }).fail(function(error){
+    return res.status(500).json({error : 'Faild to load advs'});
   });
 };
 
@@ -156,7 +162,7 @@ exports.uploadImage = function(req, res, next){
 
       upload.rename(req.files.file, file_name, function(err, imageInfo){
         if(err) return res.status(400).jsonp({errors: err.message});
-        
+
         imageInfo.isFront = req.frontImage || false;
 
         // set isFront to false if uploaded image is front
