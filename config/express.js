@@ -1,46 +1,70 @@
-'use strict';
+var express = require('express');
+var router = express.Router()
+var glob = require('glob');
 
-/**
- * Module dependencies.
- */
-var mean = require('meanio'),
-  compression = require('compression'),
-  morgan = require('morgan'),
-  consolidate = require('consolidate'),
-  cookieParser = require('cookie-parser'),
-  expressValidator = require('express-validator'),
-  bodyParser = require('body-parser'),
-  methodOverride = require('method-override'),
-  config = mean.loadConfig();
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+//var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var compress = require('compression');
+var methodOverride = require('method-override');
+var expressValidator = require('express-validator');
+var oauth2 = require('../app/middlewares/oauth2');
+var passport = require('passport');
+var strategies = require('../app/middlewares/passport.js');
 
-module.exports = function(app, passport, db) {
+module.exports = function(app, config) {
+  express.config = config;
 
-  app.set('showStackError', true);
+  app.set('views', config.root + '/app/views');
+  app.set('view engine', 'ejs');
 
-  // cache=memory or swig dies in NODE_ENV=production
-  app.locals.cache = 'memory';
+  var env = process.env.NODE_ENV || 'development';
+  app.locals.ENV = env;
+  app.locals.ENV_DEVELOPMENT = env == 'development';
 
-  // Should be placed before express.static
-  // To ensure that all assets and data are compressed (utilize bandwidth)
-  app.use(compression({
-    // Levels are specified in a range of 0 to 9, where-as 0 is
-    // no compression and 9 is best compression, but slowest
-    level: 9
-  }));
-
-  // Only use logger for development environment
-  if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-  }
-
-  // Request body parsing middleware should be above methodOverride
-  app.use(expressValidator());
+  // app.use(favicon(config.root + '/public/img/favicon.ico'));
+  app.use(logger('dev'));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({
     extended: true
   }));
+  //app.use(cookieParser());
+  app.use(compress());
+  app.use(express.static(config.root + '/public'));
   app.use(methodOverride());
+  app.use(expressValidator());
+  app.use(strategies(passport));
 
-  // Use passport session
-  app.use(passport.initialize());
+  var routes = glob.sync(config.root + '/app/routes/*.js');
+  routes.forEach(function (route) {
+    require(route)(app, oauth2, passport);
+  });
+
+  app.use(function (req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+  });
+
+  if(app.get('env') === 'development'){
+    app.use(function (err, req, res, next) {
+      res.status(err.status || 500);
+      res.json({
+        message: err.message,
+        error: err,
+        title: 'error'
+      });
+    });
+  }
+
+  app.use(function (err, req, res, next) {
+    res.status(err.status || 500);
+      res.json({
+        message: err.message,
+        error: {},
+        title: 'error'
+      });
+  });
+
 };

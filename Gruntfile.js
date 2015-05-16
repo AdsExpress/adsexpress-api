@@ -1,138 +1,74 @@
 'use strict';
 
-var paths = {
-  js: ['*.js', 'test/**/*.js', '!test/coverage/**', '!bower_components/**', 'packages/**/*.js', '!packages/**/node_modules/**', '!packages/contrib/**/*.js', '!packages/contrib/**/node_modules/**'],
-  html: ['packages/**/public/**/views/**', 'packages/**/server/views/**'],
-  css: ['!bower_components/**', 'packages/**/public/**/css/*.css', '!packages/contrib/**/public/**/css/*.css']
-};
+var request = require('request');
 
-module.exports = function(grunt) {
+module.exports = function (grunt) {
+  // show elapsed time at the end
+  require('time-grunt')(grunt);
+  // load all grunt tasks
+  require('load-grunt-tasks')(grunt);
 
-  if (process.env.NODE_ENV !== 'production') {
-    require('time-grunt')(grunt);
-  }
+  var reloadPort = 35729, files;
 
-  // Project Configuration
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    assets: grunt.file.readJSON('config/assets.json'),
-    clean: ['bower_components/build'],
+    develop: {
+      server: {
+        file: 'app.js',
+        nodeArgs: ['--debug']
+      }
+    },
     watch: {
-      js: {
-        files: paths.js,
-        tasks: ['jshint'],
-        options: {
-          livereload: true
-        }
+      options: {
+        nospawn: true,
+        livereload: reloadPort
       },
-      html: {
-        files: paths.html,
-        options: {
-          livereload: true,
-          interval: 500
-        }
+      js: {
+        files: [
+          'app.js',
+          'app/**/*.js',
+          'config/*.js'
+        ],
+        tasks: ['develop', 'delayed-livereload']
       },
       css: {
-        files: paths.css,
-        tasks: ['csslint'],
+        files: [
+          'public/css/*.css'
+        ],
         options: {
-          livereload: true
+          livereload: reloadPort
         }
-      }
-    },
-    jshint: {
-      all: {
-        src: paths.js,
-        options: {
-          jshintrc: true
-        }
-      }
-    },
-    uglify: {
-      core: {
-        options: {
-          mangle: false
-        },
-        files: '<%= assets.core.js %>'
-      }
-    },
-    csslint: {
-      options: {
-        csslintrc: '.csslintrc'
       },
-      src: paths.css
-    },
-    cssmin: {
-      core: {
-        files: '<%= assets.core.css %>'
-      }
-    },
-    nodemon: {
-      dev: {
-        script: 'server.js',
-        options: {
-          args: [],
-          ignore: ['node_modules/**'],
-          ext: 'js,html',
-          nodeArgs: ['--debug'],
-          delayTime: 1,
-          cwd: __dirname
-        }
-      }
-    },
-    concurrent: {
-      tasks: ['nodemon', 'watch'],
-      options: {
-        logConcurrentOutput: true
-      }
-    },
-    mochaTest: {
-      options: {
-        reporter: 'spec',
-        require: [
-          'server.js',
-          function() {
-            require('meanio/lib/util').preload(__dirname + '/packages/**/server', 'model');
-          }
-        ]
-      },
-      src: ['packages/**/server/tests/**/*.js']
-    },
-    env: {
-      test: {
-        NODE_ENV: 'test'
-      }
-    },
-    karma: {
-      unit: {
-        configFile: 'karma.conf.js'
+      views: {
+        files: [
+          'app/views/*.ejs',
+          'app/views/**/*.ejs'
+        ],
+        options: { livereload: reloadPort }
       }
     }
   });
 
-  //Load NPM tasks
-  require('load-grunt-tasks')(grunt);
+  grunt.config.requires('watch.js.files');
+  files = grunt.config('watch.js.files');
+  files = grunt.file.expand(files);
 
-  /**
-   * Default Task
-   */
-  grunt.hook.push('clean', -9999);
-  grunt.hook.push('concurrent', 9999);
-  if (process.env.NODE_ENV === 'production') {
-    grunt.hook.push('cssmin', 100);
-    grunt.hook.push('uglify', 200);
-  } else {
-    grunt.hook.push('jshint', -200);
-    grunt.hook.push('csslint', 100);
-  }
+  grunt.registerTask('delayed-livereload', 'Live reload after the node server has restarted.', function () {
+    var done = this.async();
+    setTimeout(function () {
+      request.get('http://localhost:' + reloadPort + '/changed?files=' + files.join(','),  function(err, res) {
+          var reloaded = !err && res.statusCode === 200;
+          if (reloaded)
+            grunt.log.ok('Delayed live reload successful.');
+          else
+            grunt.log.error('Unable to make a delayed live reload.');
+          done(reloaded);
+        });
+    }, 500);
+  });
 
-  //Default task.
-  grunt.registerTask('default', ['hook']);
-
-  //Test task.
-  grunt.registerTask('test', ['env:test', 'mochaTest', 'karma:unit']);
-
-  // For Heroku users only.
-  // Docs: https://github.com/linnovate/mean/wiki/Deploying-on-Heroku
-  grunt.registerTask('heroku:production', ['cssmin', 'uglify']);
+  grunt.registerTask('default', [
+    'develop',
+    'watch'
+  ]);
 };
