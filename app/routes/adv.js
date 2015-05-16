@@ -22,7 +22,7 @@ module.exports = function(app, auth, passport) {
    * @apiParam {String} category category slug.
    * @apiParam {String} limit limit of results.
    * @apiParam {String} offset offset results.
-   * @apiParam {String} sort sort by (created, price).
+   * @apiParam {String} sort sort by (created, price, -created, -price).
    *
    * @apiSuccess {Object[]} advs  List of advs
    */

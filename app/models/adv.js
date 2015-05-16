@@ -159,11 +159,27 @@ AdvSchema.statics = {
       skip = 0;
     }
 
+    var sortBy = 'created';
+    var order = 1;
+    if(queryString.sort.slice(0,1) === '-'){
+      sortBy = queryString.sort.slice(1);
+      order = -1;
+    }else{
+      sortBy = queryString.sort.trim();
+    }
+
+    if(['price', 'created'].indexOf(sortBy) === -1){
+      sortBy = 'created';
+    }
+
+    var sort = {};
+    sort[sortBy] = order;
+
     self.aggregate([
       { $match: filter },
       { $limit: parseInt(limit)},
       { $skip: parseInt(skip)},
-      { $sort: {created: -1}}
+      { $sort: sort}
     ],function(err, data){
       if (err){
         return callback(err, {});
