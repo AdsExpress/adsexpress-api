@@ -34,17 +34,21 @@ exports.list = function(req, res){
   function loadBySlug(){
     var deferred = Q.defer();
 
-    Category.loadBySlug(req.params.slug, function(err, data){
-      if (err){
-        deferred.reject(new Error('Faild to load advs'));
-      }
+    if(req.query.category.trim() === '') {
+      deferred.resolve(null);
+    } else {
+      Category.loadBySlug(req.query.category, function(err, data){
+        if (err){
+          deferred.reject(new Error('Faild to load advs'));
+        }
 
-      if(data){
-        deferred.resolve(data._id);
-      }else{
-        deferred.resolve(null); // retrun null if not found category
-      }
-    });
+        if(data){
+          deferred.resolve(data._id);
+        }else{
+          deferred.resolve(null); // retrun null if not found category
+        }
+      });
+    }
 
     return deferred.promise;
   }
@@ -58,10 +62,10 @@ exports.list = function(req, res){
           return res.status(500).json({error : 'Faild to load advs'});
         }
 
-        return res.json(data);
+        return res.json({'advs': data});
       });
     }else{
-      return res.status(500).json({error : 'Faild to load advs'});
+      return res.json({advs : []});
     }
   }).fail(function(error){
     return res.status(500).json({error : 'Faild to load advs'});
@@ -77,7 +81,7 @@ exports.info = function (req, res, next){
       });
     }
 
-    res.json(data);
+    res.json({adv: data});
   });
 };
 
@@ -102,7 +106,7 @@ exports.create = function(req, res, next){
       }
     }
 
-    res.json(adv);
+    res.json({adv: adv});
   });
 };
 
@@ -141,7 +145,7 @@ exports.update = function(req, res, next){
       });
     }
 
-    return res.json(adv);
+    return res.json({adv: adv});
   });
 };
 
@@ -179,7 +183,7 @@ exports.uploadImage = function(req, res, next){
         adv.save(function(err){
           if(err) return res.status(400).jsonp({errors: err.message});
 
-          res.status(200).jsonp(imageInfo);
+          res.status(200).jsonp({image: imageInfo});
         });
 
       });

@@ -56,11 +56,13 @@ var AdvSchema = new Schema({
     default: true
   },
   status: {
-    type: Boolean,
-    default: false
+    type: String,
+    default: 'pending', // (pending, rejected, published),
+    index: true
   },
   tags: {
-    type: [String]
+    type: [String],
+    index: true
   },
   user: {
     type: Schema.Types.ObjectId,
@@ -77,7 +79,31 @@ var AdvSchema = new Schema({
     type: Schema.Types.ObjectId,
     required: true
   },
-  images: [ImageSchema]
+  images: [ImageSchema],
+  price: {
+    type: Number,
+    index: true
+  },
+  phone: {
+    type: String
+  },
+  email: {
+    type: String
+  },
+  publish_status: {
+    type: String,
+    default: 'unactive', // (active, unactive)
+    index: true
+  },
+  expired_date: {
+    type: Date,
+    index: true
+  },
+  deleted: {
+    type: Boolean,
+    default: false,
+    index: true
+  }
 });
 
 AdvSchema.plugin(autoIncrement.plugin, { model: 'Adv', startAt: 100, incrementBy: 1});
@@ -97,7 +123,9 @@ AdvSchema.statics = {
   search : function(queryString, callback){
     var self = this;
     var filter = {
-      status: true
+      status: 'published',
+      deleted: false, // Get only not deleted advs
+      publish_status: 'active' // Get only active advs
     };
 
     if(queryString.categoryId){
@@ -106,16 +134,16 @@ AdvSchema.statics = {
       return callback(null, {}); // retrun null if not found category
     }
 
-    if(queryString.keyword && queryString.keyword.length >= 3){
+    if(queryString.keyword.trim() && queryString.keyword.trim().length >= 3){
       var tags = queryString.keyword.split(' ');
 
       // removes tags that length lower then 3 chars
       _.remove(tags, function(tag){ return tag.length < 3; });
 
       var or = [
-        { title: new RegExp(queryString.keyword, 'i') },
-        { content: new RegExp(queryString.keyword, 'i') },
-        { tags: { $elemMatch: { $in : [queryString.keyword] } } }
+        { title: {$regex: queryString.keyword, $options: 'i'} },
+        { content: {$regex: queryString.keyword, $options: 'i'}  },
+        { tags: { $elemMatch: { $in : tags } } }
       ];
 
       filter.$or = or;
@@ -131,11 +159,27 @@ AdvSchema.statics = {
       skip = 0;
     }
 
+    var sortBy = 'created';
+    var order = 1;
+    if(queryString.sort.slice(0,1) === '-'){
+      sortBy = queryString.sort.slice(1);
+      order = -1;
+    }else{
+      sortBy = queryString.sort.trim();
+    }
+
+    if(['price', 'created'].indexOf(sortBy) === -1){
+      sortBy = 'created';
+    }
+
+    var sort = {};
+    sort[sortBy] = order;
+
     self.aggregate([
       { $match: filter },
-      { $limit: limit},
-      { $skip: skip},
-      { $sort: {created: -1}}
+      { $limit: parseInt(limit)},
+      { $skip: parseInt(skip)},
+      { $sort: sort}
     ],function(err, data){
       if (err){
         return callback(err, {});
