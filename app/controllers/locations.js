@@ -7,13 +7,16 @@ var mongoose = require('mongoose'),
   Location = mongoose.model('Location');
 
 exports.location = function (req, res, next){
-  Location.findByCode(req.params.code, true, function (err, data){
-    console.log(req.params);
+  Location.findByCode(req.params.code, function (err, data){
     if (err){
       return res.status(500).json({
         error: 'Faild to load locations'
       });
     }
+
+    if(!data)
+      return res.status(404).json({'location' : null});
+
     res.json({'location': data});
   });
 };
