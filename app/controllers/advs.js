@@ -81,7 +81,7 @@ exports.info = function (req, res, next){
       });
     }
 
-    res.json(data);
+    res.json({adv: data});
   });
 };
 
@@ -183,7 +183,7 @@ exports.uploadImage = function(req, res, next){
         adv.save(function(err){
           if(err) return res.status(400).jsonp({errors: err.message});
 
-          res.status(200).jsonp(imageInfo);
+          res.status(200).jsonp({image: imageInfo});
         });
 
       });
