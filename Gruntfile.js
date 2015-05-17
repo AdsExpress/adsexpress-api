@@ -1,8 +1,11 @@
-'use strict';
 
-var request = require('request');
+var pathes = {
+  js: ['app.js', 'Gruntfile.js', 'app/**/*.js', 'config/*.js']
+};
 
 module.exports = function (grunt) {
+  'use strict';
+
   // show elapsed time at the end
   require('time-grunt')(grunt);
   // load all grunt tasks
@@ -12,6 +15,12 @@ module.exports = function (grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    jshint: {
+      options: {
+        jshintrc: true,
+      },
+      src: pathes.js
+    },
     develop: {
       server: {
         file: 'app.js',
@@ -29,7 +38,7 @@ module.exports = function (grunt) {
           'app/**/*.js',
           'config/*.js'
         ],
-        tasks: ['develop', 'delayed-livereload']
+        tasks: ['jshint', 'develop']
       },
       css: {
         files: [
@@ -53,21 +62,22 @@ module.exports = function (grunt) {
   files = grunt.config('watch.js.files');
   files = grunt.file.expand(files);
 
-  grunt.registerTask('delayed-livereload', 'Live reload after the node server has restarted.', function () {
-    var done = this.async();
-    setTimeout(function () {
-      request.get('http://localhost:' + reloadPort + '/changed?files=' + files.join(','),  function(err, res) {
-          var reloaded = !err && res.statusCode === 200;
-          if (reloaded)
-            grunt.log.ok('Delayed live reload successful.');
-          else
-            grunt.log.error('Unable to make a delayed live reload.');
-          done(reloaded);
-        });
-    }, 500);
-  });
+  // grunt.registerTask('delayed-livereload', 'Live reload after the node server has restarted.', function () {
+  //   var done = this.async();
+  //   setTimeout(function () {
+  //     request.get('http://localhost:' + reloadPort + '/changed?files=' + files.join(','),  function(err, res) {
+  //         var reloaded = !err && res.statusCode === 200;
+  //         if (reloaded)
+  //           grunt.log.ok('Delayed live reload successful.');
+  //         else
+  //           grunt.log.error('Unable to make a delayed live reload.');
+  //         done(reloaded);
+  //       });
+  //   }, 500);
+  // });
 
   grunt.registerTask('default', [
+    'jshint',
     'develop',
     'watch'
   ]);
