@@ -211,6 +211,7 @@ exports.forgotpassword = function(req, res, next) {
           to: user.email,
           from: config.emailFrom
         };
+        var templates = {}; // for jshint only
         mailOptions = templates.forgot_password_email(user, req, token, mailOptions);
         sendMail(mailOptions);
         done(null, true);
