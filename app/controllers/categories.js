@@ -13,7 +13,7 @@ exports.category = function (req, res, next){
         error: 'Faild to load categories'
       });
     }
-    res.json({'categories': data});
+    res.jsonResponse(data);
   });
 };
 
@@ -24,7 +24,7 @@ exports.all = function (req, res, next){
         error: 'Faild to load categories'
       });
     }
-    res.json({'categories': data});
+    res.jsonResponse(data);
   });
 };
 
@@ -58,7 +58,7 @@ exports.create = function(req, res, next){
       }
     }
 
-    res.json({'category' : category});
+    res.jsonResponse(category);
   });
 };
 
@@ -105,6 +105,6 @@ exports.update = function(req, res, next){
       });
     }
 
-    return res.json({'category' : category});
+    return res.jsonResponse(category);
   });
 };
