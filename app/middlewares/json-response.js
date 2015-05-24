@@ -12,6 +12,7 @@ var JsonResponse = function(){
 
     res.jsonResponse = self.reponse;
     res.jsonError = self.error;
+    res.jsonMongooseError = self.mongooseError;
 
     next();
   }
@@ -19,8 +20,6 @@ var JsonResponse = function(){
 
   self.setHeader = function(){
     self.res.type('json');
-
-    return null;
   }
 
   self.reponse = function(data, status){
@@ -33,22 +32,51 @@ var JsonResponse = function(){
     results.error = false;
 
     self.res.status(status).json(results);
-
-    return null;
   }
 
-  self.error = function(errors, status) {
+  function modelError(errorMsg, field){
+    var errorModel = {
+      message: errorMsg
+    }
+
+    if(field !== ''){
+      errorModel.field = field;
+    }
+
+    return errorModel;
+  }
+
+  self.error = function(errorMsg, field, status) {
+    if(typeof field === 'number'){
+      status = field;
+      field = '';
+    }
     status = status || 400;
 
     self.setHeader();
 
     var obj = {};
     obj.errors = [];
-    obj.errors.push(errors);
+    obj.errors.push(modelError(errorMsg, field));
 
     self.res.status(status).json(obj);
+  }
 
-    return null;
+  self.mongooseError = function (err, status) {
+    status = status || 400;
+
+    self.setHeader();
+
+    var obj = {};
+    obj.errors = [];
+
+    if(err.errors){
+      for(var field in err.errors){
+        obj.errors.push(modelError(err.errors[field].message, field));
+      }
+    }
+
+    self.res.status(status).json(obj);
   }
 }
 
