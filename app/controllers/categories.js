@@ -8,23 +8,18 @@ var mongoose = require('mongoose'),
 
 exports.category = function (req, res, next){
   Category.getDescendantsBySlug(req.params.slug, true, function (err, data){
-    if (err){
-      return res.status(500).json({
-        error: 'Faild to load categories'
-      });
-    }
-    res.json({'categories': data});
+    if(err) return res.jsonMongooseError(err);
+
+    res.jsonResponse(data);
   });
 };
 
 exports.all = function (req, res, next){
   Category.getAllRoot(function(err, data){
     if (err){
-      return res.status(500).json({
-        error: 'Faild to load categories'
-      });
+      return res.jsonMongooseError(err, 500);
     }
-    res.json({'categories': data});
+    res.jsonResponse(data);
   });
 };
 
@@ -35,30 +30,15 @@ exports.create = function(req, res, next){
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   var category = new Category(req.body);
 
   category.save(function(err){
-    if (err) {
-      var modelErrors = [];
+    if(err) return res.jsonMongooseError(err);
 
-      if (err.errors) {
-
-        for (var x in err.errors) {
-          modelErrors.push({
-            param: x,
-            msg: err.errors[x].message,
-            value: err.errors[x].value
-          });
-        }
-
-        return res.status(400).json(modelErrors);
-      }
-    }
-
-    res.json({'category' : category});
+    res.jsonResponse(category);
   });
 };
 
@@ -69,10 +49,12 @@ exports.update = function(req, res, next){
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   Category.findOne({_id: req.params.id}, function(err, category){
+    if(err) return res.jsonMongooseError(err);
+
     if(category){
       var data = {
         name: req.body.name,
@@ -81,22 +63,8 @@ exports.update = function(req, res, next){
       };
 
       category.update({$set: data}, function(err){
-        if (err) {
-          var modelErrors = [];
+        if(err) return res.jsonMongooseError(err);
 
-          if (err.errors) {
-
-            for (var x in err.errors) {
-              modelErrors.push({
-                param: x,
-                msg: err.errors[x].message,
-                value: err.errors[x].value
-              });
-            }
-
-            return res.status(400).json(modelErrors);
-          }
-        }
       });
 
     }else{
@@ -105,6 +73,6 @@ exports.update = function(req, res, next){
       });
     }
 
-    return res.json({'category' : category});
+    return res.jsonResponse(category);
   });
 };

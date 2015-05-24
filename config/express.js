@@ -9,6 +9,7 @@ var expressValidator = require('express-validator');
 var oauth2 = require('../app/middlewares/oauth2');
 var passport = require('passport');
 var strategies = require('../app/middlewares/passport.js');
+var jsonResponse = require('../app/middlewares/json-response');
 
 module.exports = function(app, config) {
   'use strict';
@@ -34,6 +35,7 @@ module.exports = function(app, config) {
   app.use(methodOverride());
   app.use(expressValidator());
   app.use(strategies(passport));
+  app.use(jsonResponse.express);
 
   var routes = glob.sync(config.root + '/app/routes/*.js');
   routes.forEach(function (route) {
@@ -48,22 +50,24 @@ module.exports = function(app, config) {
 
   if(app.get('env') === 'development'){
     app.use(function (err, req, res, next) {
-      res.status(err.status || 500);
-      res.json({
-        message: err.message,
-        error: err,
-        title: 'error'
-      });
+      res.jsonError({title: 'error', message: err.message}, err.status || 500);
+      //res.status(err.status || 500);
+      // res.json({
+      //   message: err.message,
+      //   error: err,
+      //   title: 'error'
+      // });
     });
   }
 
   app.use(function (err, req, res, next) {
-    res.status(err.status || 500);
-      res.json({
-        message: err.message,
-        error: {},
-        title: 'error'
-      });
+    res.jsonError({title: 'error', message: err.message}, err.status || 500);
+    // res.status(err.status || 500);
+    //   res.json({
+    //     message: err.message,
+    //     error: {},
+    //     title: 'error'
+    //   });
   });
 
 };
