@@ -8,11 +8,8 @@ var mongoose = require('mongoose'),
 
 exports.category = function (req, res, next){
   Category.getDescendantsBySlug(req.params.slug, true, function (err, data){
-    if (err){
-      return res.status(500).json({
-        error: 'Faild to load categories'
-      });
-    }
+    if(err) return res.jsonMongooseError(err);
+
     res.jsonResponse(data);
   });
 };
@@ -20,9 +17,7 @@ exports.category = function (req, res, next){
 exports.all = function (req, res, next){
   Category.getAllRoot(function(err, data){
     if (err){
-      return res.status(500).json({
-        error: 'Faild to load categories'
-      });
+      return res.jsonMongooseError(err, 500);
     }
     res.jsonResponse(data);
   });
@@ -41,22 +36,7 @@ exports.create = function(req, res, next){
   var category = new Category(req.body);
 
   category.save(function(err){
-    if (err) {
-      var modelErrors = [];
-
-      if (err.errors) {
-
-        for (var x in err.errors) {
-          modelErrors.push({
-            param: x,
-            msg: err.errors[x].message,
-            value: err.errors[x].value
-          });
-        }
-
-        return res.status(400).json(modelErrors);
-      }
-    }
+    if(err) return res.jsonMongooseError(err);
 
     res.jsonResponse(category);
   });
@@ -73,6 +53,8 @@ exports.update = function(req, res, next){
   }
 
   Category.findOne({_id: req.params.id}, function(err, category){
+    if(err) return res.jsonMongooseError(err);
+
     if(category){
       var data = {
         name: req.body.name,
@@ -81,22 +63,8 @@ exports.update = function(req, res, next){
       };
 
       category.update({$set: data}, function(err){
-        if (err) {
-          var modelErrors = [];
+        if(err) return res.jsonMongooseError(err);
 
-          if (err.errors) {
-
-            for (var x in err.errors) {
-              modelErrors.push({
-                param: x,
-                msg: err.errors[x].message,
-                value: err.errors[x].value
-              });
-            }
-
-            return res.status(400).json(modelErrors);
-          }
-        }
       });
 
     }else{

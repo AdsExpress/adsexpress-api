@@ -9,26 +9,22 @@ var mongoose = require('mongoose'),
 exports.location = function (req, res, next){
   Location.findByCode(req.params.code, function (err, data){
     if (err){
-      return res.status(500).json({
-        error: 'Faild to load locations'
-      });
+      return res.jsonMongooseError(err);
     }
 
     if(!data)
       return res.status(404).json({'location' : null});
 
-    res.json({'location': data});
+    res.jsonResponse(data);
   });
 };
 
 exports.all = function (req, res, next){
   Location.find({}, function(err, data){
     if (err){
-      return res.status(500).json({
-        error: 'Faild to load locations'
-      });
+      return res.jsonMongooseError(err);
     }
-    res.json({'locations': data});
+    res.jsonResponse(data);
   });
 };
 
@@ -45,23 +41,10 @@ exports.create = function(req, res, next){
 
   location.save(function(err){
     if (err) {
-      var modelErrors = [];
-
-      if (err.errors) {
-
-        for (var x in err.errors) {
-          modelErrors.push({
-            param: x,
-            msg: err.errors[x].message,
-            value: err.errors[x].value
-          });
-        }
-
-        return res.status(400).json(modelErrors);
-      }
+      return res.jsonMongooseError(err);
     }
 
-    res.json({'location': location});
+    res.jsonResponse(location);
   });
 };
 
@@ -85,20 +68,7 @@ exports.update = function(req, res, next){
 
       location.update({$set: data}, function(err){
         if (err) {
-          var modelErrors = [];
-
-          if (err.errors) {
-
-            for (var x in err.errors) {
-              modelErrors.push({
-                param: x,
-                msg: err.errors[x].message,
-                value: err.errors[x].value
-              });
-            }
-
-            return res.status(400).json(modelErrors);
-          }
+          return res.jsonMongooseError(err);
         }
       });
 
@@ -108,6 +78,6 @@ exports.update = function(req, res, next){
       });
     }
 
-    return res.json({'location': location});
+    return res.jsonResponse(location);
   });
 };
