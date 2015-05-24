@@ -30,7 +30,7 @@ exports.create = function(req, res, next){
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   var category = new Category(req.body);
@@ -49,7 +49,7 @@ exports.update = function(req, res, next){
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   Category.findOne({_id: req.params.id}, function(err, category){

@@ -36,7 +36,7 @@ exports.create = function(req, res, next){
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   location.save(function(err){
@@ -55,7 +55,7 @@ exports.update = function(req, res, next){
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   Location.findOne({_id: req.params.id}, function(err, location){

@@ -22,7 +22,7 @@ exports.validateInputs = function (req, res, next){
   var errors = req.validationErrors();
 
   if(errors){
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   next();

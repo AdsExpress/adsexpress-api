@@ -10,9 +10,17 @@ var JsonResponse = function(){
     self.req = req;
     self.res = res;
 
+    // normal response
     res.jsonResponse = self.reponse;
+
+    // normal error
     res.jsonError = self.error;
+
+    // for mongoose validations error
     res.jsonMongooseError = self.mongooseError;
+
+    // for express-validator middleware
+    res.jsonExpressError = self.expressError;
 
     next();
   }
@@ -73,6 +81,23 @@ var JsonResponse = function(){
     if(err.errors){
       for(var field in err.errors){
         obj.errors.push(modelError(err.errors[field].message, field));
+      }
+    }
+
+    self.res.status(status).json(obj);
+  }
+
+  self.expressError = function (errs, status){
+    status = status || 400;
+
+    self.setHeader();
+
+    var obj = {};
+    obj.errors = [];
+
+    if(errs){
+      for (var x in errs) {
+        obj.errors.push(modelError(errs[x].msg, errs[x].param));
       }
     }
 
