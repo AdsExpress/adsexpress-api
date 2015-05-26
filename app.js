@@ -5,6 +5,8 @@ var express = require('express'),
   glob = require('glob'),
   mongoose = require('mongoose');
 
+  express.config = config;
+
 mongoose.connect(config.db.host);
 var db = mongoose.connection;
 

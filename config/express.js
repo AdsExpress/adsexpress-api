@@ -14,8 +14,6 @@ var jsonResponse = require('../app/middlewares/json-response');
 module.exports = function(app, config) {
   'use strict';
 
-  express.config = config;
-
   app.set('views', config.root + '/app/views');
   app.set('view engine', 'ejs');
 
@@ -34,6 +32,7 @@ module.exports = function(app, config) {
   app.use(express.static(config.root + '/public'));
   app.use(methodOverride());
   app.use(expressValidator());
+  app.use(passport.initialize());
   app.use(strategies(passport));
   app.use(jsonResponse.express);
 
