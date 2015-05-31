@@ -10,12 +10,6 @@ var mongoose = require('mongoose'),
   crypto = require('crypto'),
   nodemailer = require('nodemailer');
 
-/**
- * Auth callback
- */
-exports.authCallback = function(req, res) {
-  res.redirect('/');
-};
 
 /**
  * Show login form
@@ -32,15 +26,10 @@ exports.signin = function(req, res) {
  */
 exports.signout = function(req, res) {
   req.logout();
-  res.redirect('/');
+
+  req.jsonResponse('success');
 };
 
-/**
- * Session
- */
-exports.session = function(req, res) {
-  res.redirect('/');
-};
 
 /**
  * Create user
@@ -51,15 +40,15 @@ exports.create = function(req, res, next) {
   user.provider = 'local';
 
   // because we set our user.provider to local our models/user.js validation will always be true
-  req.assert('name', 'You must enter a name').notEmpty();
-  req.assert('email', 'You must enter a valid email address').isEmail();
-  req.assert('password', 'Password must be between 8-20 characters long').len(8, 20);
-  req.assert('username', 'Username cannot be more than 20 characters').len(1, 20);
-  req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
+  req.checkBody('name', 'You must enter a name').notEmpty();
+  req.checkBody('email', 'You must enter a valid email address').isEmail();
+  req.checkBody('password', 'Password must be between 8-20 characters long').len(8, 20);
+  req.checkBody('username', 'Username cannot be more than 20 characters').len(1, 20);
+  req.checkBody('confirmPassword', 'Passwords do not match').equals(req.body.password);
 
   var errors = req.validationErrors();
   if (errors) {
-    return res.status(400).send(errors);
+    return res.jsonExpressError(errors);
   }
 
   // Hard coded for now. Will address this with the user permissions system in v0.3.5
@@ -69,42 +58,23 @@ exports.create = function(req, res, next) {
       switch (err.code) {
         case 11000:
         case 11001:
-          res.status(400).json([{
-            msg: 'Username already taken',
-            param: 'username'
-          }]);
+          res.jsonError('Username already taken', 'username');
           break;
         default:
-          var modelErrors = [];
-
-          if (err.errors) {
-
-            for (var x in err.errors) {
-              modelErrors.push({
-                param: x,
-                msg: err.errors[x].message,
-                value: err.errors[x].value
-              });
-            }
-
-            res.status(400).json(modelErrors);
-          }
+          res.jsonMongooseError(err);
       }
-
-      return res.status(400);
     }
     req.logIn(user, function(err) {
       if (err) return next(err);
-      return res.redirect('/');
+      return res.jsonResponse('success');
     });
-    res.status(200);
   });
 };
 /**
  * Send User
  */
 exports.me = function(req, res) {
-  res.json(req.user || null);
+  res.jsonResponse(req.user);
 };
 
 /**
@@ -116,8 +86,8 @@ exports.user = function(req, res, next, id) {
       _id: id
     })
     .exec(function(err, user) {
-      if (err) return next(err);
-      if (!user) return next(new Error('Failed to load User ' + id));
+      if (err) return res.jsonMongooseError(err);
+      if (!user) return res.jsonError('Failed to load User ' + id);
       req.profile = user;
       next();
     });
@@ -135,30 +105,24 @@ exports.resetpassword = function(req, res, next) {
     }
   }, function(err, user) {
     if (err) {
-      return res.status(400).json({
-        msg: err
-      });
+      return res.jsonMongooseError(err);
     }
     if (!user) {
-      return res.status(400).json({
-        msg: 'Token invalid or expired'
-      });
+      return res.jsonError('Token invalid or expired', 'token');
     }
-    req.assert('password', 'Password must be between 8-20 characters long').len(8, 20);
-    req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
+    req.checkBody('password', 'Password must be between 8-20 characters long').len(8, 20);
+    req.checkBody('confirmPassword', 'Passwords do not match').equals(req.body.password);
     var errors = req.validationErrors();
     if (errors) {
-      return res.status(400).send(errors);
+      return res.jsonExpressError(errors);
     }
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     user.save(function(err) {
       req.logIn(user, function(err) {
-        if (err) return next(err);
-        return res.send({
-          user: user
-        });
+        if (err) return res.jsonMongooseError(err);
+        return res.jsonResponse(user);
       });
     });
   });
@@ -211,21 +175,18 @@ exports.forgotpassword = function(req, res, next) {
           to: user.email,
           from: config.emailFrom
         };
+        var templates = {}; // for jshint only
         mailOptions = templates.forgot_password_email(user, req, token, mailOptions);
         sendMail(mailOptions);
         done(null, true);
       }
     ],
     function(err, status) {
-      var response = {
-        message: 'Mail successfully sent',
-        status: 'success'
-      };
       if (err) {
-        response.message = 'User does not exist';
-        response.status = 'danger';
+        return res.jsonError('User does not exist');
       }
-      res.json(response);
+
+      res.jsonResponse('success');
     }
   );
 };

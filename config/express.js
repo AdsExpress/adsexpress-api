@@ -1,8 +1,5 @@
 var express = require('express');
-var router = express.Router()
 var glob = require('glob');
-
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 //var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -12,16 +9,17 @@ var expressValidator = require('express-validator');
 var oauth2 = require('../app/middlewares/oauth2');
 var passport = require('passport');
 var strategies = require('../app/middlewares/passport.js');
+var jsonResponse = require('../app/middlewares/json-response');
 
 module.exports = function(app, config) {
-  express.config = config;
+  'use strict';
 
   app.set('views', config.root + '/app/views');
   app.set('view engine', 'ejs');
 
   var env = process.env.NODE_ENV || 'development';
   app.locals.ENV = env;
-  app.locals.ENV_DEVELOPMENT = env == 'development';
+  app.locals.ENV_DEVELOPMENT = env === 'development';
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
   app.use(logger('dev'));
@@ -34,7 +32,9 @@ module.exports = function(app, config) {
   app.use(express.static(config.root + '/public'));
   app.use(methodOverride());
   app.use(expressValidator());
+  app.use(passport.initialize());
   app.use(strategies(passport));
+  app.use(jsonResponse.express);
 
   var routes = glob.sync(config.root + '/app/routes/*.js');
   routes.forEach(function (route) {
@@ -49,22 +49,24 @@ module.exports = function(app, config) {
 
   if(app.get('env') === 'development'){
     app.use(function (err, req, res, next) {
-      res.status(err.status || 500);
-      res.json({
-        message: err.message,
-        error: err,
-        title: 'error'
-      });
+      res.jsonError({title: 'error', message: err.message}, err.status || 500);
+      //res.status(err.status || 500);
+      // res.json({
+      //   message: err.message,
+      //   error: err,
+      //   title: 'error'
+      // });
     });
   }
 
   app.use(function (err, req, res, next) {
-    res.status(err.status || 500);
-      res.json({
-        message: err.message,
-        error: {},
-        title: 'error'
-      });
+    res.jsonError({title: 'error', message: err.message}, err.status || 500);
+    // res.status(err.status || 500);
+    //   res.json({
+    //     message: err.message,
+    //     error: {},
+    //     title: 'error'
+    //   });
   });
 
 };

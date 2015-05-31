@@ -22,7 +22,7 @@ exports.validateInputs = function (req, res, next){
   var errors = req.validationErrors();
 
   if(errors){
-    return res.status(400).json(errors);
+    return res.jsonExpressError(errors);
   }
 
   next();
@@ -59,16 +59,16 @@ exports.list = function(req, res){
 
       Adv.search(req.query, function(err, data){
         if (err){
-          return res.status(500).json({error : 'Faild to load advs'});
+          return res.jsonMongooseError(err);
         }
 
-        return res.json({'advs': data});
+        return res.jsonResponse(data);
       });
     }else{
-      return res.json({advs : []});
+      return res.jsonResponse([]);
     }
   }).fail(function(error){
-    return res.status(500).json({error : 'Faild to load advs'});
+    return res.jsonMongooseError(error, 500);
   });
 };
 
@@ -76,12 +76,10 @@ exports.info = function (req, res, next){
 
   Adv.getInfo(req.params.id, function(err, data){
     if(err){
-      return res.status(500).json({
-        error: 'Faild to load this adv'
-      });
+      return res.jsonMongooseError(err);
     }
 
-    res.json({adv: data});
+    res.jsonResponse(data);
   });
 };
 
@@ -90,23 +88,10 @@ exports.create = function(req, res, next){
 
   adv.save(function(err){
     if (err) {
-      var modelErrors = [];
-
-      if (err.errors) {
-
-        for (var x in err.errors) {
-          modelErrors.push({
-            param: x,
-            msg: err.errors[x].message,
-            value: err.errors[x].value
-          });
-        }
-
-        return res.status(400).json(modelErrors);
-      }
+      return res.jsonMongooseError(err);
     }
 
-    res.json({adv: adv});
+    res.jsonResponse(adv);
   });
 };
 
@@ -122,20 +107,7 @@ exports.update = function(req, res, next){
 
       adv.update({$set: data}, function(err){
         if (err) {
-          var modelErrors = [];
-
-          if (err.errors) {
-
-            for (var x in err.errors) {
-              modelErrors.push({
-                param: x,
-                msg: err.errors[x].message,
-                value: err.errors[x].value
-              });
-            }
-
-            return res.status(400).json(modelErrors);
-          }
+          return res.jsonMongooseError(err);
         }
       });
 
@@ -145,7 +117,7 @@ exports.update = function(req, res, next){
       });
     }
 
-    return res.json({adv: adv});
+    return res.jsonResponse(adv);
   });
 };
 
@@ -156,7 +128,7 @@ exports.uploadImage = function(req, res, next){
     res.status(500).jsonp({errors: 'Internal error: please call administrator (not found upload directory).'});
   } else {
     Adv.findOne({ _id: req.params.id }, function(err, adv){
-      if (err) return res.status(400).json({ errors: 'Faild to load this adv' });
+      if (err) return res.jsonMongooseError(err);
 
       // adv. Not found
       if(adv === null) return res.status(400).json({ errors: 'Adv. Not found' });
@@ -181,9 +153,9 @@ exports.uploadImage = function(req, res, next){
         adv.images.push(imageInfo);
 
         adv.save(function(err){
-          if(err) return res.status(400).jsonp({errors: err.message});
+          if(err) return res.jsonMongooseError(err);
 
-          res.status(200).jsonp({image: imageInfo});
+          res.jsonResponse(imageInfo);
         });
 
       });

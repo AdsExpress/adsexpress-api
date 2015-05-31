@@ -1,3 +1,5 @@
+'use strict';
+
 var path = require('path'),
     rootPath = path.normalize(__dirname + '/..'),
     env = process.env.NODE_ENV || 'development';
@@ -5,7 +7,7 @@ var path = require('path'),
 function merge_options(obj1,obj2){
     var obj3 = {};
     for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
-    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+    for (var attrname2 in obj2) { obj3[attrname2] = obj2[attrname2]; }
     return obj3;
 }
 
@@ -29,7 +31,7 @@ var config = {
     },
 
     // oauth2 settings
-    oAuth2: {
+    oauth2: {
       tokenLife : 3600 * 24 * 15 // 15 day
     }
   },
@@ -54,4 +56,4 @@ var config = {
   }
 };
 
-module.exports = merge_options(config['all'], config[env]);
+module.exports = merge_options(config.all, config[env]);
