@@ -41,7 +41,7 @@ module.exports = function(passport) {
         if(err) return done(err);
         if(!token) return done(null, false);
 
-        if( Math.round((Date.now() - token.created) / 1000 ) > config.oAuth2.tokenLife ){
+        if( Math.round((Date.now() - token.created) / 1000 ) > config.oauth2.tokenLife ){
           AccessToken.remove({ token: accessToken }, function(err){
             if(err) return done(err);
           });
