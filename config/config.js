@@ -31,7 +31,7 @@ var config = {
     },
 
     // oauth2 settings
-    oAuth2: {
+    oauth2: {
       tokenLife : 3600 * 24 * 15 // 15 day
     }
   },
